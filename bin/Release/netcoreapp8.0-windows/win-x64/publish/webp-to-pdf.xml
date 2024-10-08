@@ -4,6 +4,17 @@
         <name>webp-to-pdf</name>
     </assembly>
     <members>
+        <member name="T:webp_to_pdf.MainFrom">
+            <summary>
+            WebPからPDFへの変換ツールのフォームクラス
+            </summary>
+        </member>
+        <member name="M:webp_to_pdf.MainFrom.#ctor">
+            <summary>
+            MainFromクラスのコンストラクタです。
+            フォームの初期化を行い、ボタンのクリックイベントにメソッドを登録します。
+            </summary>
+        </member>
         <member name="F:webp_to_pdf.MainFrom.components">
             <summary>
              必要なデザイナ変数。

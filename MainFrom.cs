@@ -16,13 +16,19 @@ using PdfSharp.Drawing;
 // WebPからPDFへの変換ツールのフォームクラス
 namespace webp_to_pdf
 {
+    /// <summary>
+    /// WebPからPDFへの変換ツールのフォームクラス
+    /// </summary>
     public partial class MainFrom : Form
     {
         // 選択されたファイルのリスト
         private List<string> selectedFiles = new List<string>();
         private int selectedSizeOption = 0; // デフォルトで画像に合わせるオプション
 
-        // コンストラクタ
+        /// <summary>
+        /// MainFromクラスのコンストラクタです。
+        /// フォームの初期化を行い、ボタンのクリックイベントにメソッドを登録します。
+        /// </summary>
         public MainFrom()
         {
             // UIコンポーネントの初期化
@@ -30,7 +36,7 @@ namespace webp_to_pdf
             // ボタンのクリックイベントにメソッドを登録
             btnSelectFiles.Click += BtnSelectFiles_Click;
             btnConvert.Click += BtnConvert_Click;
-            
+
             // 新しいイベントハンドラを追加
             btnMoveUp.Click += BtnMoveUp_Click;
             btnMoveDown.Click += BtnMoveDown_Click;
@@ -182,8 +188,8 @@ namespace webp_to_pdf
                             if (selectedSizeOption == 0)
                             {
                                 // ページ単位サイズモード
-                                page.Width = xImage.PixelWidth;
-                                page.Height = xImage.PixelHeight;
+                                page.Width = XUnit.FromPoint(xImage.PixelWidth);
+                                page.Height = XUnit.FromPoint(xImage.PixelHeight);
                                 gfx.DrawImage(xImage, 0, 0, xImage.PixelWidth, xImage.PixelHeight);
                             }
                             else if (selectedSizeOption == 1)
@@ -191,20 +197,20 @@ namespace webp_to_pdf
                                 // A4縦向きモード
                                 page.Width = XUnit.FromMillimeter(210); // A4横向きの幅
                                 page.Height = XUnit.FromMillimeter(297); // A4横向きの高さ
-                                double scale = Math.Min(page.Width / xImage.PixelWidth, page.Height / xImage.PixelHeight);
+                                double scale = Math.Min(page.Width.Point / xImage.PixelWidth, page.Height.Point / xImage.PixelHeight);
                                 double width = xImage.PixelWidth * scale;
                                 double height = xImage.PixelHeight * scale;
-                                gfx.DrawImage(xImage, (page.Width - width) / 2, (page.Height - height) / 2, width, height);
+                                gfx.DrawImage(xImage, (page.Width.Point - width) / 2, (page.Height.Point - height) / 2, width, height);
                             }
                             else if (selectedSizeOption == 2)
                             {
                                 // A4横向きモード
                                 page.Width = XUnit.FromMillimeter(297); // A4横向きの幅
                                 page.Height = XUnit.FromMillimeter(210); // A4横向きの高さ
-                                double scale = Math.Min(page.Width / xImage.PixelWidth, page.Height / xImage.PixelHeight);
+                                double scale = Math.Min(page.Width.Point / xImage.PixelWidth, page.Height.Point / xImage.PixelHeight);
                                 double width = xImage.PixelWidth * scale;
                                 double height = xImage.PixelHeight * scale;
-                                gfx.DrawImage(xImage, (page.Width - width) / 2, (page.Height - height) / 2, width, height);
+                                gfx.DrawImage(xImage, (page.Width.Point - width) / 2, (page.Height.Point - height) / 2, width, height);
                             }
                         }
                     }
