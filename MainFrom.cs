@@ -20,6 +20,7 @@ namespace webp_to_pdf
     {
         // 選択されたファイルのリスト
         private List<string> selectedFiles = new List<string>();
+        private int selectedSizeOption = 0; // デフォルトで画像に合わせるオプション
 
         // コンストラクタ
         public MainFrom()
@@ -29,6 +30,14 @@ namespace webp_to_pdf
             // ボタンのクリックイベントにメソッドを登録
             btnSelectFiles.Click += BtnSelectFiles_Click;
             btnConvert.Click += BtnConvert_Click;
+            
+            // 新しいイベントハンドラを追加
+            btnMoveUp.Click += BtnMoveUp_Click;
+            btnMoveDown.Click += BtnMoveDown_Click;
+            btnClearFiles.Click += BtnClearFiles_Click;
+            radioButtonImageSize.CheckedChanged += RadioButtonSizeOption_CheckedChanged;
+            radioButtonA4Portrait.CheckedChanged += RadioButtonSizeOption_CheckedChanged;
+            radioButtonA4Landscape.CheckedChanged += RadioButtonSizeOption_CheckedChanged;
         }
 
         // WebPファイル選択ボタンのクリックイベント
@@ -43,7 +52,6 @@ namespace webp_to_pdf
                 // ダイアログを表示し、選択された場合
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    selectedFiles.Clear(); // 以前の選択をクリア
                     selectedFiles.AddRange(openFileDialog.FileNames); // 新しいファイルを追加
                     UpdateFileList(); // ファイルリストを更新
                 }
@@ -58,6 +66,63 @@ namespace webp_to_pdf
             {
                 // ファイル名をリストに追加
                 lstSelectedFiles.Items.Add(Path.GetFileName(file));
+            }
+        }
+
+        // ファイルを上に移動
+        private void BtnMoveUp_Click(object sender, EventArgs e)
+        {
+            MoveSelectedItem(-1);
+        }
+
+        // ファイルを下に移動
+        private void BtnMoveDown_Click(object sender, EventArgs e)
+        {
+            MoveSelectedItem(1);
+        }
+
+        // 選択されたアイテムを移動
+        private void MoveSelectedItem(int direction)
+        {
+            if (lstSelectedFiles.SelectedIndex == -1 || lstSelectedFiles.Items.Count == 0) return;
+
+            int newIndex = lstSelectedFiles.SelectedIndex + direction;
+            if (newIndex < 0 || newIndex >= lstSelectedFiles.Items.Count) return;
+
+            var selectedIndex = lstSelectedFiles.SelectedIndex;
+            var item = lstSelectedFiles.SelectedItem;
+            var file = selectedFiles[selectedIndex];
+
+            lstSelectedFiles.Items.RemoveAt(selectedIndex);
+            selectedFiles.RemoveAt(selectedIndex);
+
+            lstSelectedFiles.Items.Insert(newIndex, item);
+            selectedFiles.Insert(newIndex, file);
+
+            lstSelectedFiles.SelectedIndex = newIndex;
+        }
+
+        // 選択したファイルをクリア
+        private void BtnClearFiles_Click(object sender, EventArgs e)
+        {
+            selectedFiles.Clear();
+            lstSelectedFiles.Items.Clear();
+        }
+
+        // PDFサイズオプションの変更
+        private void RadioButtonSizeOption_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButtonImageSize.Checked)
+            {
+                selectedSizeOption = 0;
+            }
+            else if (radioButtonA4Portrait.Checked)
+            {
+                selectedSizeOption = 1;
+            }
+            else if (radioButtonA4Landscape.Checked)
+            {
+                selectedSizeOption = 2;
             }
         }
 
@@ -103,33 +168,52 @@ namespace webp_to_pdf
                 for (int i = 0; i < webpFiles.Count; i++)
                 {
                     string webpFile = webpFiles[i];
-                    PdfPage page = document.AddPage(); // 新しいページを追加
-                    XGraphics gfx = XGraphics.FromPdfPage(page); // ページに描画するためのオブジェクトを取得
+                    PdfPage page = document.AddPage();
+                    XGraphics gfx = XGraphics.FromPdfPage(page);
 
-                    using (SixLabors.ImageSharp.Image image = await SixLabors.ImageSharp.Image.LoadAsync(webpFile)) // WebP画像を非同期で読み込み
+                    using (SixLabors.ImageSharp.Image image = await SixLabors.ImageSharp.Image.LoadAsync(webpFile))
                     {
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            await image.SaveAsPngAsync(ms); // PNG形式でメモリストリームに保存
-                            ms.Position = 0; // ストリームの位置をリセット
-                            XImage xImage = XImage.FromStream(ms); // ストリームから画像を作成
+                            await image.SaveAsPngAsync(ms);
+                            ms.Position = 0;
+                            XImage xImage = XImage.FromStream(ms);
 
-                            // 画像をページに合わせてスケーリング
-                            double scale = Math.Min(page.Width / xImage.PixelWidth, page.Height / xImage.PixelHeight);
-                            double width = xImage.PixelWidth * scale;
-                            double height = xImage.PixelHeight * scale;
-
-                            // 画像をページの中央に描画
-                            gfx.DrawImage(xImage, (page.Width - width) / 2, (page.Height - height) / 2, width, height);
+                            if (selectedSizeOption == 0)
+                            {
+                                // ページ単位サイズモード
+                                page.Width = xImage.PixelWidth;
+                                page.Height = xImage.PixelHeight;
+                                gfx.DrawImage(xImage, 0, 0, xImage.PixelWidth, xImage.PixelHeight);
+                            }
+                            else if (selectedSizeOption == 1)
+                            {
+                                // A4縦向きモード
+                                page.Width = XUnit.FromMillimeter(210); // A4横向きの幅
+                                page.Height = XUnit.FromMillimeter(297); // A4横向きの高さ
+                                double scale = Math.Min(page.Width / xImage.PixelWidth, page.Height / xImage.PixelHeight);
+                                double width = xImage.PixelWidth * scale;
+                                double height = xImage.PixelHeight * scale;
+                                gfx.DrawImage(xImage, (page.Width - width) / 2, (page.Height - height) / 2, width, height);
+                            }
+                            else if (selectedSizeOption == 2)
+                            {
+                                // A4横向きモード
+                                page.Width = XUnit.FromMillimeter(297); // A4横向きの幅
+                                page.Height = XUnit.FromMillimeter(210); // A4横向きの高さ
+                                double scale = Math.Min(page.Width / xImage.PixelWidth, page.Height / xImage.PixelHeight);
+                                double width = xImage.PixelWidth * scale;
+                                double height = xImage.PixelHeight * scale;
+                                gfx.DrawImage(xImage, (page.Width - width) / 2, (page.Height - height) / 2, width, height);
+                            }
                         }
                     }
 
-                    // 進捗状況の更新
                     int progress = (i + 1) * 100 / webpFiles.Count;
-                    UpdateProgress(progress); // 進捗を更新
+                    UpdateProgress(progress);
                 }
 
-                document.Save(outputPath); // PDFファイルを保存
+                document.Save(outputPath);
             }
         }
 

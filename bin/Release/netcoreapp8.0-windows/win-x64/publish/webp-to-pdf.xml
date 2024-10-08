@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>webp-to-pdf</name>
+    </assembly>
+    <members>
+        <member name="F:webp_to_pdf.MainFrom.components">
+            <summary>
+             必要なデザイナ変数。
+            </summary>
+        </member>
+        <member name="M:webp_to_pdf.MainFrom.Dispose(System.Boolean)">
+            <summary>
+             使用中のリソースをクリーンアップします。
+            </summary>
+            <param name="disposing">管理リソースを解放する場合はtrue、それ以外はfalse。</param>
+        </member>
+        <member name="M:webp_to_pdf.MainFrom.InitializeComponent">
+            <summary>
+             デザイナサポートのために必要なメソッドです - コードエディタで内容を変更しないでください。
+            </summary>
+        </member>
+        <member name="M:webp_to_pdf.Program.Main">
+            <summary>
+             The main entry point for the application.
+            </summary>
+        </member>
+    </members>
+</doc>
