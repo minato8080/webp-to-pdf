@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Webp;
 using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 
@@ -26,18 +20,16 @@ namespace webp_to_pdf
         private int selectedSizeOption = 0; // デフォルトで画像に合わせるオプション
 
         /// <summary>
-        /// MainFromクラスのコンストラクタです。
-        /// フォームの初期化を行い、ボタンのクリックイベントにメソッドを登録します。
+        /// MainFromのコンストラクタ
         /// </summary>
         public MainFrom()
         {
             // UIコンポーネントの初期化
             InitializeComponent();
-            // ボタンのクリックイベントにメソッドを登録
+
+            // イベントハンドラを登録
             btnSelectFiles.Click += BtnSelectFiles_Click;
             btnConvert.Click += BtnConvert_Click;
-
-            // 新しいイベントハンドラを追加
             btnMoveUp.Click += BtnMoveUp_Click;
             btnMoveDown.Click += BtnMoveDown_Click;
             btnClearFiles.Click += BtnClearFiles_Click;
@@ -177,7 +169,7 @@ namespace webp_to_pdf
                     PdfPage page = document.AddPage();
                     XGraphics gfx = XGraphics.FromPdfPage(page);
 
-                    using (SixLabors.ImageSharp.Image image = await SixLabors.ImageSharp.Image.LoadAsync(webpFile))
+                    using (Image image = await Image.LoadAsync(webpFile))
                     {
                         using (MemoryStream ms = new MemoryStream())
                         {
@@ -226,13 +218,16 @@ namespace webp_to_pdf
         // 進捗状況を更新するメソッド
         private void UpdateProgress(int value)
         {
+            // UIスレッド以外
             if (InvokeRequired)
             {
-                Invoke(new Action<int>(UpdateProgress), value); // スレッド間での呼び出し
+                // UIスレッドで実行
+                Invoke(new Action<int>(UpdateProgress), value);
                 return;
             }
 
-            progressBar.Value = value; // プログレスバーの値を更新
+            // プログレスバーの値を更新
+            progressBar.Value = value;
         }
     }
 }
